@@ -17,70 +17,60 @@ html, body {
   width: 1080px;
   height: 1920px;
   overflow: hidden;
-  font-family: "Figtree", sans-serif;
+  font-family: "Figtree", Arial, sans-serif;
+  background: #0b5f91;
 }
 
-/* MAIN POSTER */
 .poster {
   width: 1080px;
   height: 1920px;
   position: relative;
-
-  background-image:
-    linear-gradient(rgba(0,95,145,0.05), rgba(0,95,145,0.05)),
-    url("https://drive.google.com/uc?export=view&id=1Bnup5_dMsMc-K_YLJ9NuGQGuJi2jggeg");
-
-  background-size: 1080px 1920px; /* EXACT FIT */
+  background-image: url("background.png");
+  background-size: 1080px 1920px;
   background-position: center;
   background-repeat: no-repeat;
-
   color: white;
 }
 
-/* CONTENT CENTER */
 .content {
   position: absolute;
-  top: 30%;
+  top: 570px;
   width: 100%;
   text-align: center;
 }
 
-/* TITLE */
 .title {
   font-size: 72px;
   font-weight: 900;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-/* DATE */
 .date {
-  font-size: 48px;
-  margin-bottom: 80px;
+  font-size: 52px;
+  font-weight: 500;
+  margin-bottom: 90px;
 }
 
-/* NUMBER */
 .number {
-  font-size: 260px;
+  font-size: 280px;
   font-weight: 900;
   line-height: 1;
-  margin-bottom: 60px;
+  margin-bottom: 70px;
 }
 
-/* SUBTITLE */
 .subtitle {
-  font-size: 60px;
+  font-size: 66px;
   font-weight: 900;
   color: #bfe4ff;
 }
 
-/* STATUS */
 .status {
   position: absolute;
-  bottom: 20px;
+  bottom: 22px;
   width: 100%;
   text-align: center;
-  font-size: 20px;
-  color: rgba(255,255,255,0.75);
+  font-size: 18px;
+  color: rgba(255,255,255,0.7);
 }
 </style>
 </head>
@@ -88,7 +78,6 @@ html, body {
 <body>
 
 <div class="poster">
-
   <div class="content">
     <div class="title">Today’s Outpatients</div>
     <div class="date" id="date">Loading...</div>
@@ -97,51 +86,72 @@ html, body {
   </div>
 
   <div class="status" id="status">Connecting to Google Sheet...</div>
-
 </div>
 
 <script>
-// 🔗 YOUR SHEET (CSV)
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkSHuwMFhdfcEaQnjFi00S0GtQ5QioagbII8AYPtGbewBsOOm2BoHXNyw2E2fs2vk6dAJm12lvPxah/pub?output=csv";
 
-// CLEAN VALUE
 function clean(v) {
   return v ? String(v).trim() : "";
 }
 
-// SIMPLE CSV PARSER
 function parseCSV(text) {
-  const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+  const rows = text.trim().split(/\r?\n/).map(parseCSVRow);
   const headers = rows.shift().map(clean);
 
   return rows.map(row => {
-    let obj = {};
-    headers.forEach((h, i) => obj[h] = clean(row[i]));
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = clean(row[i]);
+    });
     return obj;
   });
 }
 
-// TODAY FORMAT (DD/MM/YYYY)
+function parseCSVRow(row) {
+  const result = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i];
+
+    if (char === '"') {
+      insideQuotes = !insideQuotes;
+    } else if (char === "," && !insideQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  result.push(current);
+  return result;
+}
+
 function getToday() {
   return new Date().toLocaleDateString("en-GB", {
-    timeZone: "Asia/Kuala_Lumpur"
+    timeZone: "Asia/Kuala_Lumpur",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
   });
 }
 
-// DISPLAY DATE
 function formatDate(d) {
   const [day, month, year] = d.split("/");
-  const date = new Date(`${year}-${month}-${day}`);
+  const date = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
 
   return date.toLocaleDateString("en-GB", {
+    timeZone: "Asia/Kuala_Lumpur",
     day: "numeric",
     month: "long",
     year: "numeric"
   });
 }
 
-// LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(SHEET_URL + "&t=" + Date.now());
@@ -178,9 +188,8 @@ async function loadData() {
   }
 }
 
-// RUN
 loadData();
-setInterval(loadData, 300000); // refresh every 5 mins
+setInterval(loadData, 300000);
 </script>
 
 </body>
