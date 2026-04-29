@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0"/>
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
 <title>Today's Outpatients</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;700;900&display=swap" rel="stylesheet">
 
 <style>
@@ -19,10 +18,9 @@ html, body {
   height: 1920px;
   overflow: hidden;
   font-family: "Figtree", sans-serif;
-  background: #0b5f91;
 }
 
-/* FULL SCREEN POSTER */
+/* MAIN POSTER */
 .poster {
   width: 1080px;
   height: 1920px;
@@ -32,16 +30,17 @@ html, body {
     linear-gradient(rgba(0,95,145,0.05), rgba(0,95,145,0.05)),
     url("https://drive.google.com/uc?export=view&id=1Bnup5_dMsMc-K_YLJ9NuGQGuJi2jggeg");
 
-  background-size: cover;
+  background-size: 1080px 1920px; /* EXACT FIT */
   background-position: center;
   background-repeat: no-repeat;
+
   color: white;
 }
 
-/* CENTER CONTENT */
+/* CONTENT CENTER */
 .content {
   position: absolute;
-  top: 28%;
+  top: 30%;
   width: 100%;
   text-align: center;
 }
@@ -56,11 +55,10 @@ html, body {
 /* DATE */
 .date {
   font-size: 48px;
-  font-weight: 500;
   margin-bottom: 80px;
 }
 
-/* BIG NUMBER */
+/* NUMBER */
 .number {
   font-size: 260px;
   font-weight: 900;
@@ -68,21 +66,21 @@ html, body {
   margin-bottom: 60px;
 }
 
-/* SUBTEXT */
+/* SUBTITLE */
 .subtitle {
   font-size: 60px;
   font-weight: 900;
   color: #bfe4ff;
 }
 
-/* FOOTER */
+/* STATUS */
 .status {
   position: absolute;
   bottom: 20px;
   width: 100%;
   text-align: center;
   font-size: 20px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.75);
 }
 </style>
 </head>
@@ -103,7 +101,7 @@ html, body {
 </div>
 
 <script>
-// 🔗 YOUR GOOGLE SHEET CSV LINK
+// 🔗 YOUR SHEET (CSV)
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkSHuwMFhdfcEaQnjFi00S0GtQ5QioagbII8AYPtGbewBsOOm2BoHXNyw2E2fs2vk6dAJm12lvPxah/pub?output=csv";
 
@@ -112,7 +110,7 @@ function clean(v) {
   return v ? String(v).trim() : "";
 }
 
-// PARSE CSV
+// SIMPLE CSV PARSER
 function parseCSV(text) {
   const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
   const headers = rows.shift().map(clean);
@@ -124,14 +122,14 @@ function parseCSV(text) {
   });
 }
 
-// GET TODAY (Malaysia format DD/MM/YYYY)
+// TODAY FORMAT (DD/MM/YYYY)
 function getToday() {
   return new Date().toLocaleDateString("en-GB", {
     timeZone: "Asia/Kuala_Lumpur"
   });
 }
 
-// DISPLAY DATE FORMAT
+// DISPLAY DATE
 function formatDate(d) {
   const [day, month, year] = d.split("/");
   const date = new Date(`${year}-${month}-${day}`);
@@ -180,12 +178,9 @@ async function loadData() {
   }
 }
 
-// INITIAL LOAD
+// RUN
 loadData();
-
-// AUTO REFRESH EVERY 5 MINUTES
-setInterval(loadData, 300000);
-
+setInterval(loadData, 300000); // refresh every 5 mins
 </script>
 
 </body>
