@@ -17,10 +17,11 @@ html, body {
   width: 1080px;
   height: 1920px;
   overflow: hidden;
-  font-family: "Figtree", Arial, sans-serif;
+  font-family: "Figtree", sans-serif;
   background: #0b5f91;
 }
 
+/* MAIN POSTER */
 .poster {
   width: 1080px;
   height: 1920px;
@@ -29,10 +30,11 @@ html, body {
   color: white;
 }
 
-/* BACKGROUND IMAGE */
+/* BACKGROUND IMAGE (FIXED) */
 .bg {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 1080px;
   height: 1920px;
   object-fit: fill;
@@ -56,7 +58,6 @@ html, body {
 
 .date {
   font-size: 52px;
-  font-weight: 500;
   margin-bottom: 90px;
 }
 
@@ -89,8 +90,12 @@ html, body {
 
 <div class="poster">
 
-  <!-- IMPORTANT: background.png must be beside index.html -->
-  <img class="bg" src="./background.png" alt="Background">
+  <!-- ✅ WORKING BACKGROUND -->
+  <img 
+    class="bg" 
+    src="https://raw.githubusercontent.com/ijnconnect/todayoutpatient/main/background.png"
+    alt=""
+  >
 
   <div class="content">
     <div class="title">Today’s Outpatients</div>
@@ -104,27 +109,28 @@ html, body {
 </div>
 
 <script>
+// 🔗 GOOGLE SHEET
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkSHuwMFhdfcEaQnjFi00S0GtQ5QioagbII8AYPtGbewBsOOm2BoHXNyw2E2fs2vk6dAJm12lvPxah/pub?output=csv";
 
+// CLEAN
 function clean(v) {
   return v ? String(v).trim() : "";
 }
 
+// CSV PARSER (robust)
 function parseCSV(text) {
-  const rows = text.trim().split(/\r?\n/).map(parseCSVRow);
+  const rows = text.trim().split(/\r?\n/).map(parseRow);
   const headers = rows.shift().map(clean);
 
   return rows.map(row => {
     const obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = clean(row[i]);
-    });
+    headers.forEach((h, i) => obj[h] = clean(row[i]));
     return obj;
   });
 }
 
-function parseCSVRow(row) {
+function parseRow(row) {
   const result = [];
   let current = "";
   let insideQuotes = false;
@@ -146,6 +152,7 @@ function parseCSVRow(row) {
   return result;
 }
 
+// TODAY FORMAT
 function getToday() {
   return new Date().toLocaleDateString("en-GB", {
     timeZone: "Asia/Kuala_Lumpur",
@@ -155,6 +162,7 @@ function getToday() {
   });
 }
 
+// DISPLAY DATE
 function formatDate(d) {
   const [day, month, year] = d.split("/");
   const date = new Date(`${year}-${month}-${day}T00:00:00+08:00`);
@@ -167,6 +175,7 @@ function formatDate(d) {
   });
 }
 
+// LOAD DATA
 async function loadData() {
   try {
     const res = await fetch(SHEET_URL + "&t=" + Date.now());
@@ -203,6 +212,7 @@ async function loadData() {
   }
 }
 
+// RUN
 loadData();
 setInterval(loadData, 300000);
 </script>
