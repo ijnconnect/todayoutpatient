@@ -25,18 +25,27 @@ html, body {
   width: 1080px;
   height: 1920px;
   position: relative;
-  background-image: url("background.png");
-  background-size: 1080px 1920px;
-  background-position: center;
-  background-repeat: no-repeat;
+  overflow: hidden;
   color: white;
 }
 
+/* BACKGROUND IMAGE */
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 1080px;
+  height: 1920px;
+  object-fit: fill;
+  z-index: 0;
+}
+
+/* CONTENT */
 .content {
   position: absolute;
   top: 570px;
   width: 100%;
   text-align: center;
+  z-index: 2;
 }
 
 .title {
@@ -71,6 +80,7 @@ html, body {
   text-align: center;
   font-size: 18px;
   color: rgba(255,255,255,0.7);
+  z-index: 2;
 }
 </style>
 </head>
@@ -78,6 +88,10 @@ html, body {
 <body>
 
 <div class="poster">
+
+  <!-- IMPORTANT: background.png must be beside index.html -->
+  <img class="bg" src="./background.png" alt="Background">
+
   <div class="content">
     <div class="title">Today’s Outpatients</div>
     <div class="date" id="date">Loading...</div>
@@ -86,6 +100,7 @@ html, body {
   </div>
 
   <div class="status" id="status">Connecting to Google Sheet...</div>
+
 </div>
 
 <script>
