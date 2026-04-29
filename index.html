@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0"/>
+<title>Today's Outpatients</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;700;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  font-family: "Figtree", sans-serif;
+  background: #0b5f91;
+}
+
+/* FULL SCREEN POSTER */
+.poster {
+  width: 1080px;
+  height: 1920px;
+  position: relative;
+
+  background-image:
+    linear-gradient(rgba(0,95,145,0.05), rgba(0,95,145,0.05)),
+    url("https://drive.google.com/uc?export=view&id=1Bnup5_dMsMc-K_YLJ9NuGQGuJi2jggeg");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white;
+}
+
+/* CENTER CONTENT */
+.content {
+  position: absolute;
+  top: 28%;
+  width: 100%;
+  text-align: center;
+}
+
+/* TITLE */
+.title {
+  font-size: 72px;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+
+/* DATE */
+.date {
+  font-size: 48px;
+  font-weight: 500;
+  margin-bottom: 80px;
+}
+
+/* BIG NUMBER */
+.number {
+  font-size: 260px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 60px;
+}
+
+/* SUBTEXT */
+.subtitle {
+  font-size: 60px;
+  font-weight: 900;
+  color: #bfe4ff;
+}
+
+/* FOOTER */
+.status {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
+  color: rgba(255,255,255,0.7);
+}
+</style>
+</head>
+
+<body>
+
+<div class="poster">
+
+  <div class="content">
+    <div class="title">Today’s Outpatients</div>
+    <div class="date" id="date">Loading...</div>
+    <div class="number" id="count">--</div>
+    <div class="subtitle">Hearts Served Today</div>
+  </div>
+
+  <div class="status" id="status">Connecting to Google Sheet...</div>
+
+</div>
+
+<script>
+// 🔗 YOUR GOOGLE SHEET CSV LINK
+const SHEET_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vRkSHuwMFhdfcEaQnjFi00S0GtQ5QioagbII8AYPtGbewBsOOm2BoHXNyw2E2fs2vk6dAJm12lvPxah/pub?output=csv";
+
+// CLEAN VALUE
+function clean(v) {
+  return v ? String(v).trim() : "";
+}
+
+// PARSE CSV
+function parseCSV(text) {
+  const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+  const headers = rows.shift().map(clean);
+
+  return rows.map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = clean(row[i]));
+    return obj;
+  });
+}
+
+// GET TODAY (Malaysia format DD/MM/YYYY)
+function getToday() {
+  return new Date().toLocaleDateString("en-GB", {
+    timeZone: "Asia/Kuala_Lumpur"
+  });
+}
+
+// DISPLAY DATE FORMAT
+function formatDate(d) {
+  const [day, month, year] = d.split("/");
+  const date = new Date(`${year}-${month}-${day}`);
+
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+// LOAD DATA
+async function loadData() {
+  try {
+    const res = await fetch(SHEET_URL + "&t=" + Date.now());
+    const text = await res.text();
+    const data = parseCSV(text);
+
+    const today = getToday();
+
+    const todayRow = data.find(row =>
+      clean(row["Date"]) === today
+    );
+
+    document.getElementById("date").innerText = formatDate(today);
+
+    if (!todayRow) {
+      document.getElementById("count").innerText = "0";
+      document.getElementById("status").innerText =
+        "No data found for today (" + today + ")";
+      return;
+    }
+
+    document.getElementById("count").innerText =
+      clean(todayRow["Total Outpatient"]) || "0";
+
+    document.getElementById("status").innerText =
+      "Last updated: " +
+      new Date().toLocaleString("en-MY", {
+        timeZone: "Asia/Kuala_Lumpur"
+      });
+
+  } catch (err) {
+    document.getElementById("count").innerText = "--";
+    document.getElementById("status").innerText = "Error loading data";
+  }
+}
+
+// INITIAL LOAD
+loadData();
+
+// AUTO REFRESH EVERY 5 MINUTES
+setInterval(loadData, 300000);
+
+</script>
+
+</body>
+</html>
