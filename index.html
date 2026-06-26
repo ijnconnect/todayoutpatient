@@ -68,10 +68,40 @@ html, body {
   margin-bottom: 70px;
 }
 
+.closed-message {
+  font-size: clamp(86px, 9vw, 118px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -2px;
+  color: #bfe4ff;
+  margin-bottom: 70px;
+}
+
+.divider {
+  width: 70%;
+  max-width: 720px;
+  height: 2px;
+  margin: 0 auto 42px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(191, 228, 255, 0.75),
+    transparent
+  );
+}
+
 .subtitle {
   font-size: clamp(52px, 6vw, 68px);
   font-weight: 900;
   color: #bfe4ff;
+}
+
+.closed-subtitle {
+  font-size: clamp(38px, 4.8vw, 54px);
+  font-weight: 700;
+  line-height: 1.35;
+  color: #ffffff;
+  padding: 0 90px;
 }
 
 .status {
@@ -100,8 +130,11 @@ html, body {
   <div class="content">
     <div class="title">Today’s Outpatients</div>
     <div class="date" id="date">Loading...</div>
-    <div class="number" id="count">--</div>
-    <div class="subtitle">Hearts Served Today</div>
+
+    <div id="mainDisplay">
+      <div class="number" id="count">--</div>
+      <div class="subtitle">Hearts Served Today</div>
+    </div>
   </div>
 
   <div class="status" id="status">Connecting to Google Sheet...</div>
@@ -172,6 +205,29 @@ function formatDate(dateString) {
   });
 }
 
+function renderOpen(total) {
+  document.getElementById("mainDisplay").innerHTML = `
+    <div class="number">${total || "0"}</div>
+    <div class="divider"></div>
+    <div class="subtitle">Hearts Served Today</div>
+  `;
+}
+
+function renderClosed() {
+  document.getElementById("mainDisplay").innerHTML = `
+    <div class="closed-message">
+      OUTPATIENT<br>
+      CLINICS<br>
+      CLOSED
+    </div>
+    <div class="divider"></div>
+    <div class="closed-subtitle">
+      Outpatient services will resume on the next working day.<br>
+      Thank you.
+    </div>
+  `;
+}
+
 async function loadData() {
   try {
     const response = await fetch(SHEET_URL + "&cache=" + Date.now());
@@ -179,20 +235,25 @@ async function loadData() {
     const data = parseCSV(csvText);
 
     const today = getToday();
-
     const todayRow = data.find(row => clean(row["Date"]) === today);
 
     document.getElementById("date").innerText = formatDate(today);
 
     if (!todayRow) {
-      document.getElementById("count").innerText = "0";
+      renderClosed();
       document.getElementById("status").innerText =
         "No data found for today (" + today + ")";
       return;
     }
 
-    document.getElementById("count").innerText =
-      clean(todayRow["Total Outpatient"]) || "0";
+    const status = clean(todayRow["Status"]).toUpperCase();
+    const total = clean(todayRow["Total Outpatient"]);
+
+    if (status === "CLOSED") {
+      renderClosed();
+    } else {
+      renderOpen(total);
+    }
 
     document.getElementById("status").innerText =
       "Last updated: " +
@@ -201,7 +262,7 @@ async function loadData() {
       });
 
   } catch (error) {
-    document.getElementById("count").innerText = "--";
+    renderClosed();
     document.getElementById("status").innerText = "Error loading data";
   }
 }
