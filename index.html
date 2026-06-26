@@ -41,12 +41,21 @@ html, body {
 
 .content {
   position: absolute;
-  top: 19.5%;
   left: 0;
   width: 100%;
   text-align: center;
   z-index: 2;
   color: #ffffff;
+}
+
+/* OPEN goes lower / more centred */
+body.open .content {
+  top: 24%;
+}
+
+/* CLOSED stays slightly higher because it has the extra message */
+body.closed .content {
+  top: 19.5%;
 }
 
 .title {
